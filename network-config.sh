@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #exist dialog?
-dialog --clear 2>&1 >/dev/null;
+dialog --clear;
 if [[ $? != 0 ]];then
   echo -e "\E[31mERROR: Cannot run 'dialog'.">&2;tput sgr0;
   exit 1;
@@ -15,7 +15,7 @@ LOG_ERROR[1]="ERROR: Not checked interface.";
 LOG_ERROR[2]="ERROR: Found symbol '_' in fields.";
 LOG_ERROR[3]="ERROR: Field 'Mask' is incorrect.";
 LOG_ERROR[4]="ERROR: Incorrect hostname.";
-
+LOG_ERROR[5]="ERROR: Cannot change hostname.";
 #********Genetate tempfiles from dialog*********#
 tempfile() {
     tempprefix=$(basename "$0");
@@ -158,10 +158,12 @@ EXIT_FORM="0";
 while [[ $EXIT_FORM == "0" ]];do
 
   # display values just entered	
+  MENU_HOSTNAME="'Host name:       ' 9 1 '${FORM_HOSTNAME}'     9 20 30 0"
   # open fd
   exec 3>&1
-  # Store data to $DIALOG_STRING variable
 
+ #if [ -f $PATH_DNS_HOST ];then
+  # Store data to $DIALOG_STRING variable
   DIALOG_STRING=$(DIALOGRC="$TMP_DIALOG_MENU" dialog --clear \
     --ok-label "OK" \
     --title "Smilart Operating System" \
@@ -175,11 +177,11 @@ while [[ $EXIT_FORM == "0" ]];do
    2>&1 1>&3)
   DIALOG_RETURN_VALUE=$?
   exec 3>&-
-
+ 
   if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE = 255 ]]; then
     exit 1;
   fi;
-
+  
   # exist "_" in form?
   if [[ -n `echo "$DIALOG_STRING" | grep "_"` ]];then
 	error_func "${LOG_ERROR[2]}";
@@ -196,6 +198,14 @@ while [[ $EXIT_FORM == "0" ]];do
   FORM_MASK=${DIALOG_STRING[1]};
   FORM_GATEWAY=${DIALOG_STRING[2]};
   FORM_DNS=${DIALOG_STRING[3]};
+  
+  if [ -f $PATH_DNS_HOST ];then
+    if [[ $FORM_HOSTNAME != ${DIALOG_STRING[4]} ]];then
+      error_func "${LOG_ERROR[5]}";
+      continue
+    fi;
+  fi;
+
   FORM_HOSTNAME=${DIALOG_STRING[4]};
   IFS=$OIFS
 
@@ -265,10 +275,11 @@ Address=$FORM_IP$FORM_MASK
 `if [[ -n $FORM_GATEWAY ]];then echo "Gateway=$FORM_GATEWAY"; fi`
 DNS=127.0.0.1
 Domains=smilart.local
-" > $PATH_SYSTEM_NETWORK
+" > $PATH_SYSTEM_NETWORK;
+sudo systemctl restart systemd-networkd;
 
 #Save dns in temporary file for configure dns server
-echo "$FORM_DNS" > $PATH_DNS_HOST
+echo "$FORM_DNS" > $PATH_DNS_HOST;
 
 #Set hostname
-sudo hostnamectl set-hostname $FORM_HOSTNAME
+sudo hostnamectl set-hostname $FORM_HOSTNAME;
