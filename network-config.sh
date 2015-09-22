@@ -131,7 +131,7 @@ while [[ $EXIT_FORM == "0" ]];do
   DIALOG_RETURN_VALUE=$?
   exec 3>&-
   
-  if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE = 255 ]]; then  
+  if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE == 255 ]]; then  
     exit 1;
   fi;
 
@@ -178,7 +178,7 @@ while [[ $EXIT_FORM == "0" ]];do
   DIALOG_RETURN_VALUE=$?
   exec 3>&-
  
-  if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE = 255 ]]; then
+  if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE == 255 ]]; then
     exit 1;
   fi;
   
@@ -260,7 +260,7 @@ while [[ $EXIT_FORM == "0" ]];do
   #valid hostname?
   test_hostname_func "$FORM_HOSTNAME";
 
-EXIT_FORM="1";
+  EXIT_FORM="1";
 done;
 
 #*******************Save to files****************#
@@ -283,3 +283,6 @@ echo "$FORM_DNS" > $PATH_DNS_HOST;
 
 #Set hostname
 sudo hostnamectl set-hostname $FORM_HOSTNAME;
+
+
+
