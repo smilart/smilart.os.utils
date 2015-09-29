@@ -177,10 +177,26 @@ sudo setterm -msg off;
         sudo touch /etc/smilart/product_installed;
     fi;
 
+    echo "Testing dns-server.";
+    sleep 5;
+
+    # hostname
+    ping -c `hostname` > /dev/null 2>&1;
+    if [ $? -ne 0 ];then
+      echo -e "\E[31m Name '`hostname`' is'nt available." >&2;tput sgr0;
+    fi;
+
+    # obr
+    ping -c obr.smilart.local > /dev/null 2>&1;
+    if [ $? -ne 0 ];then
+      echo -e "\E[31m Name 'obr.smilart.local' is'nt available." >&2;tput sgr0;
+    fi;
+    echo "Testing complete–d."; 
+
     clear;
-    echo "Installation complete.";
-    echo "System will reboot after 15 seconds.";
-    sleep 15;
+    echo "Installation completed.";
+    echo "System will reboot after 5 seconds.";
+    sleep 5;
     sudo /sbin/reboot;
 
   fi;
