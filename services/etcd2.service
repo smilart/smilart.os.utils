@@ -1,0 +1,13 @@
+[Unit]
+Description=etcd2
+Conflicts=etcd.service
+
+[Service]
+Environment=ETCD_DATA_DIR=/var/lib/etcd2
+ExecStart=/bin/bash -c "/usr/bin/etcd2 -name __HOST_NAME__ -listen-peer-urls http://__HOST_IP__:__HOST_PORT_PEER__ -listen-client-urls http://__HOST_IP__:__HOST_PORT_CLIENT__,http://127.0.0.1:__HOST_PORT_CLIENT__ -advertise-client-urls http://__HOST_IP__:__HOST_PORT_CLIENT__"
+Restart=always
+RestartSec=10s
+LimitNOFILE=40000
+
+[Install]
+WantedBy=multi-user.target

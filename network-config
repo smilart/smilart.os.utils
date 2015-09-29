@@ -253,7 +253,7 @@ while [[ $EXIT_FORM == "0" ]];do
   field_not_empty_func "$FORM_HOSTNAME" Hostname;
 
   #valid hostname?
-  test_hostname_func "$FORM_HOSTNAME";
+  test_hostname_func $FORM_HOSTNAME;
 
   EXIT_FORM="1";
 done;
