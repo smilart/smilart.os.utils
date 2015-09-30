@@ -1,5 +1,0 @@
-[Unit]
-Description=etcd2
-
-[Service]
-ExecStart=/bin/bash -c "/usr/bin/etcd2 -name __HOST_NAME__ -listen-peer-urls http://__HOST_IP__:__HOST_PORT_PEER__ -initial-cluster-state existing -listen-client-urls http://__HOST_IP__:__HOST_PORT_CLIENT__,http://127.0.0.1:__HOST_PORT_CLIENT__ -advertise-client-urls http://__HOST_IP:__HOST_PORT_CLIENT__ -initial-cluster-token smilart-cluster __INITIAL_CLUSTER__,__HOST_NAME__=http://__HOST_IP__:__HOST_PORT_PEER__  -data-dir /var/lib/etcd2"
