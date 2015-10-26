@@ -102,24 +102,24 @@ fi
 EXIT_FORM="0";
 while [[ $EXIT_FORM == "0" ]];do
   # search current interfaces
-  inet=`ls /sys/class/net | grep -v "\`ls /sys/devices/virtual/net\`"`
+  inet=`ls /sys/class/net | grep -v "\`ls /sys/devices/virtual/net\`"`;
 
   # generate menu options
   MENU_OPTIONS='';
-  COUNT=0
+  COUNT=0;
   for i in $inet
   do
     inet[$COUNT]=$i;
-    COUNT=$[COUNT+1]
+    COUNT=$[COUNT+1];
     if [[ `cat /sys/class/net/$i/operstate` == "up" ]];then
       CONNECT_i="$i Connect";
     else
-      CONNECT_i="$i -"
+      CONNECT_i="$i -";
     fi; 
-    MENU_OPTIONS="${MENU_OPTIONS} ${CONNECT_i} off "
+    MENU_OPTIONS="${MENU_OPTIONS} ${CONNECT_i} off ";
   done
 
-  # Store data to $cmd variable
+  # Store data to variable
   exec 3>&1
   FORM_INTERFACE=$(DIALOGRC="$TMP_DIALOG_MENU" dialog --clear \
     --ok-label "NEXT" \
@@ -157,12 +157,7 @@ EXIT_FORM="0";
 
 while [[ $EXIT_FORM == "0" ]];do
 
-  # display values just entered	
-  MENU_HOSTNAME="'Host name:       ' 9 1 '${FORM_HOSTNAME}'     9 20 30 0"
-  # open fd
   exec 3>&1
-
- #if [ -f $PATH_DNS_HOST ];then
   # Store data to $DIALOG_STRING variable
   DIALOG_STRING=$(DIALOGRC="$TMP_DIALOG_MENU" dialog --clear \
     --ok-label "OK" \
