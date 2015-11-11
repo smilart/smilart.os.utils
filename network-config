@@ -93,7 +93,7 @@ function mask2cidr_func() {
 # test_hostname_func <hostname>
 function test_hostname_func() {
 if ! [[ "$1" =~ ^[a-z][a-z0-9-]{0,}$ ]];then
-  error_func ${LOG_ERROR[4]}"ERROR: Incorrect hostname."; 
+  error_func "${LOG_ERROR[4]}"; 
   continue
 fi
 }
