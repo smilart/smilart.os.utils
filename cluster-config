@@ -1,5 +1,5 @@
 #!/bin/bash
-set -vx
+
 PATH_CONFIGURE_DIR="/etc/smilart";
 PATH_CLUSTER_INSTALLED="$PATH_CONFIGURE_DIR/cluster_installed";
 ETCD_PORT=2379;
