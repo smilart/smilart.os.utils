@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -vx
 PATH_TIMEZONE='/usr/share/zoneinfo';
 
 #exist dialog?
@@ -11,6 +11,7 @@ fi;
 
 set_timezone_func(){
   sudo /usr/bin/timedatectl set-timezone "$1";
+  sudo rm -r -f /etc/timezone > /dev/null 2>&1;
   sudo echo "$1" > /etc/timezone;
 }
 
@@ -56,6 +57,7 @@ while [[ $EXIT_FORM == "0" ]];do
   fi;
 
   #Timezone
+  #CHTZ -- change timezone
   if [[ "$FORM_DATA" == "Timezone:     " ]];then
       CHTZ_EXIT_FORM="0";
       while [[ $CHTZ_EXIT_FORM == "0" ]];do
@@ -127,6 +129,8 @@ while [[ $EXIT_FORM == "0" ]];do
       continue
   fi;
 
+  #Date
+  #CHD -- change data
   if [[ "$FORM_DATA" == "Date:         " ]];then
     CHD_DATE_RESULT="$MENU_DATE";
     CHD_MENU_DATE=`echo "$MENU_DATE" | awk -F "-" '{ print $3 " " $2 " " $1 }'`;
@@ -148,6 +152,8 @@ while [[ $EXIT_FORM == "0" ]];do
     continue
   fi;
 
+  #Time
+  #CHT -- change time
   if [[ "$FORM_DATA" == "Time:         " ]];then
     CHT_MENU_TIME=`date '+%H %M %S'`;
     exec 3>&1
@@ -170,3 +176,8 @@ while [[ $EXIT_FORM == "0" ]];do
 
   EXIT_FORM="1";
 done;
+
+# Set default timezone
+if [[ -z $CHTZ_TIMEZONE_RESULT ]];then
+     set_timezone_func $MENU_TIMEZONE; 
+fi;
