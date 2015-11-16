@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#Set debug mode:
+#set -vx
+
 #exist dialog?
 dialog --clear;
 if [[ $? != 0 ]];then
@@ -22,8 +25,14 @@ tempfile() {
     mktemp /tmp/${tempprefix}.XXXXXX;
 }
 
+TMP_DIALOG_WARN=$(tempfile)
 TMP_DIALOG_MENU=$(tempfile)
 TMP_DIALOG_ERROR=$(tempfile)
+
+echo "
+dialog_color = (YELLOW,WHITE,ON)
+title_color = (RED,WHITE,ON)
+" > $TMP_DIALOG_WARN
 
 echo "
 bindkey formbox   TAB  form_next
@@ -37,7 +46,23 @@ dialog_color = (RED,WHITE,OFF)
 title_color = (RED,WHITE,ON)
 " > $TMP_DIALOG_ERROR
 
-trap 'rm -f $TMP_DIALOG_MENU $TMP_DIALOG_ERROR' EXIT
+# Function at break script
+run_at_break(){
+  sleep 1;
+  DIALOGRC="$TMP_DIALOG_WARN" \
+    dialog --ok-label "OK" \
+           --msgbox "\nWARN: Network is not configured." 10 50;
+  rm -f $TMP_DIALOG_MENU $TMP_DIALOG_ERROR $TMP_DIALOG_WARN;
+  exit 1;
+}
+
+# Function at exit script
+run_at_exit(){
+  rm -f $TMP_DIALOG_MENU $TMP_DIALOG_ERROR $TMP_DIALOG_WARN
+  exit 0;
+}
+
+trap 'run_at_break' SIGHUP SIGINT SIGTERM
 #***********************************************#
 
 # echo ERROR to dialog
@@ -131,8 +156,8 @@ while [[ $EXIT_FORM == "0" ]];do
   DIALOG_RETURN_VALUE=$?
   exec 3>&-
   
-  if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE == 255 ]]; then  
-    exit 1;
+  if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE == 255 ]]; then 
+    run_at_break; 
   fi;
 
   #Correct interface?
@@ -174,7 +199,7 @@ while [[ $EXIT_FORM == "0" ]];do
   exec 3>&-
  
   if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE == 255 ]]; then
-    exit 1;
+    run_at_break;
   fi;
   
   # exist "_" in form?
@@ -279,5 +304,5 @@ echo "$FORM_DNS" > $PATH_DNS_HOST;
 #Set hostname
 sudo hostnamectl set-hostname $FORM_HOSTNAME;
 
-
+run_at_exit;
 

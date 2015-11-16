@@ -1,5 +1,8 @@
 #!/bin/bash
-set -vx
+
+#Set debug mode:
+#set -vx
+
 PATH_TIMEZONE='/usr/share/zoneinfo';
 
 #exist dialog?
@@ -19,12 +22,35 @@ set_date_func(){
   sudo /usr/bin/timedatectl set-time "$1 $2";
 }
 
-# echo ERROR to dialog
-# error_func <text>
-error_func() {
-  DIALOGRC="$TMP_DIALOG_ERROR" \
-    dialog --msgbox "\n$1" 10 50
+#********Genetate tempfiles from dialog*********#
+tempfile() {
+    tempprefix=$(basename "$0");
+    mktemp /tmp/${tempprefix}.XXXXXX;
 }
+
+TMP_DIALOG_WARN=$(tempfile)
+
+echo "
+dialog_color = (YELLOW,WHITE,ON)
+title_color = (RED,WHITE,ON)
+" > $TMP_DIALOG_WARN
+
+# Function at break script
+run_at_break(){
+  sleep 1;
+  DIALOGRC="$TMP_DIALOG_WARN" \
+    dialog --ok-label "OK" \
+           --msgbox "\nWARN: Time is not configured." 10 50;
+  rm -f $TMP_DIALOG_WARN;
+  exit 1;
+}
+# Function at exit script
+run_at_exit(){
+  rm -f $TMP_DIALOG_WARN;
+  exit 0;
+}
+
+trap 'run_at_break' SIGHUP SIGINT SIGTERM
 
 #****************CONFIGURE DATA INTERFACE**************#
 EXIT_FORM="0";
@@ -53,7 +79,7 @@ while [[ $EXIT_FORM == "0" ]];do
   exec 3>&-
   
   if [[ $DIALOG_RETURN_VALUE == 255 ]]; then
-    exit 1;
+    run_at_break;
   fi;
 
   #Timezone
@@ -181,3 +207,5 @@ done;
 if [[ -z $CHTZ_TIMEZONE_RESULT ]];then
      set_timezone_func $MENU_TIMEZONE; 
 fi;
+
+run_at_exit;
