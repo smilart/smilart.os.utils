@@ -78,9 +78,9 @@ function valid_ip_func() {
 }
 
 #****************CONFIGURE CLUSTER**************#
-EXIT_FORM="0";
+EXIT_FORM="true";
 FORM_IP='';
-while [[ $EXIT_FORM == "0" ]];do
+while [[ $EXIT_FORM == "true" ]];do
   # Store data to $cmd variable
   exec 3>&1
   FORM_CLUSTER=$(DIALOGRC="$TMP_DIALOG_MENU" dialog --clear \
@@ -146,7 +146,7 @@ while [[ $EXIT_FORM == "0" ]];do
       CLUSTER_INSTALLED="single"
   fi;
 
-  EXIT_FORM="1";
+  EXIT_FORM="false";
 done;
 
 
