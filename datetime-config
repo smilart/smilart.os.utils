@@ -64,7 +64,7 @@ MENU_TIME=`date '+%T'`;
 
 
 while [[ $EXIT_FORM == "0" ]];do
-  
+
   # Store data to variable
   exec 3>&1
   FORM_DATA=$(dialog --clear --ok-label "Change" \
