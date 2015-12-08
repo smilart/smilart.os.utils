@@ -147,9 +147,9 @@ while [[ $EXIT_FORM == "0" ]];do
   # Store data to variable
   exec 3>&1
   FORM_INTERFACE=$(DIALOGRC="$TMP_DIALOG_MENU" dialog --clear \
-    --ok-label "NEXT" \
+    --ok-label "Next" \
     --title "Smilart Operating System" \
-    --radiolist "\nSelect the network interface for configure" \
+    --radiolist "\nSelect the network interface to configure" \
       10 50 4 \
       ${MENU_OPTIONS} \
       2>&1 1>&3)
@@ -302,7 +302,7 @@ Domains=smilart.local
 " > $PATH_SYSTEM_NETWORK;
 sudo systemctl restart systemd-networkd;
 
-#Save dns in temporary file for configure dns server
+#Save dns in temporary file to configure dns server
 echo "$FORM_DNS" > $PATH_DNS_HOST;
 
 #Set hostname
