@@ -84,7 +84,7 @@ while [[ $EXIT_FORM == "true" ]];do
   # Store data to $cmd variable
   exec 3>&1
   FORM_CLUSTER=$(DIALOGRC="$TMP_DIALOG_MENU" dialog --clear \
-    --ok-label "NEXT" \
+    --ok-label "Next" \
     --title "Smilart Operating System" \
     --radiolist "\nAdditional cluster node or standalone server (first node in cluster):" \
       11 50 4 \
