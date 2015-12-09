@@ -15,7 +15,7 @@ fi;
 LOG_ERROR[1]="ERROR: Not checked configure server.";
 LOG_ERROR[2]="ERROR: Field 'Ip' is empty.";
 LOG_ERROR[3]="ERROR: Field 'Ip' is incorrect.";
-LOG_ERROR[4]="ERROR: Failed to ping the network interface."
+LOG_ERROR[4]="ERROR: Failed to ping the etcd cluster."
 #********Genetate tempfiles from dialog*********#
 tempfile() {
     tempprefix=$(basename "$0");
