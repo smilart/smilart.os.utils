@@ -141,7 +141,11 @@ while [[ $EXIT_FORM == "0" ]];do
     else
       CONNECT_i="$i -";
     fi;
-    MENU_OPTIONS="${MENU_OPTIONS} ${CONNECT_i} off ";
+    if [[ MENU_OPTIONS == '' ]];then
+      MENU_OPTIONS="${CONNECT_i} on ";
+    else
+      MENU_OPTIONS="${MENU_OPTIONS} ${CONNECT_i} off ";
+    fi;
   done
 
   # Store data to variable
