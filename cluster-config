@@ -92,7 +92,7 @@ while [[ $EXIT_FORM == "true" ]];do
     --title "Smilart Operating System" \
     --radiolist "\nAdditional cluster node or standalone server (first node in cluster):" \
       11 50 4 \
-      1 "Standalone server" off \
+      1 "Standalone server" on \
       2 "Additional node" off \
       2>&1 1>&3)
   DIALOG_RETURN_VALUE=$?
