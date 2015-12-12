@@ -10,7 +10,7 @@ if [[ $? != 0 ]];then
   exit 1;
 fi;
 
-PATH_SYSTEM_NETWORK="/etc/systemd/network/static.network";
+PATH_SYSTEM_NETWORK="/etc/systemd/network";
 PATH_DNS_HOST="/etc/smilart/dns-host";
 
 #**************log ERROR****************#
@@ -127,8 +127,9 @@ fi
 EXIT_FORM="0";
 while [[ $EXIT_FORM == "0" ]];do
   # search current interfaces
-  inet=`ls /sys/class/net | grep -v "\`ls /sys/devices/virtual/net\`"`;
-
+  #inet=`ls /sys/class/net | grep -v "\`ls /sys/devices/virtual/net\`"`;
+  inet=`ls /sys/class/net`;
+  
   # generate menu options
   MENU_OPTIONS='';
   COUNT=0;
@@ -178,11 +179,22 @@ done;
 #**************CONFIGURE NETWORK**************#
 EXIT_FORM="0";
 
+# Writing old configure
+  FORM_IP=``
+if [ -e "${PATH_SYSTEM_NETWORK}/${FORM_INTERFACE}" ];then
+  CONFIGURE_TO_FILE=`cat ${PATH_SYSTEM_NETWORK}/${FORM_INTERFACE}`;
+  FORM_IP=`echo $CONFIGURE_TO_FILE | grep 'Address' | sed s#"Address="##g | awk -F '/' ' {print $1} '`;
+  FORM_MASK=`echo $CONFIGURE_TO_FILE | grep 'Address' | sed s#"Address="##g | awk -F '/' ' {print $2} '`;
+  FORM_GATEWAY=`echo $CONFIGURE_TO_FILE | grep 'Gateway' | sed s#"Gateway="##g`;
+  FORM_DNS=`cat $PATH_DNS_HOST`;
+  FORM_HOSTNAME="`hostname`";
+else
   FORM_IP='';
   FORM_MASK='';
   FORM_GATEWAY='';
   FORM_DNS='';
   FORM_HOSTNAME="`hostname`";
+fi
 
 while [[ $EXIT_FORM == "0" ]];do
 
@@ -303,7 +315,7 @@ Address=$FORM_IP$FORM_MASK
 `if [[ -n $FORM_GATEWAY ]];then echo "Gateway=$FORM_GATEWAY"; fi`
 DNS=127.0.0.1
 Domains=smilart.local
-" > $PATH_SYSTEM_NETWORK;
+" > $PATH_SYSTEM_NETWORK/$FORM_INTERFACE.network;
 sudo systemctl restart systemd-networkd;
 
 #Save dns in temporary file to configure dns server
