@@ -12,6 +12,7 @@ fi;
 
 PATH_SYSTEM_NETWORK="/etc/systemd/network";
 PATH_DNS_HOST="/etc/smilart/dns-host";
+NETWORK_INSTALLED="/etc/smilart/network_installed";
 
 #**************log ERROR****************#
 LOG_ERROR[1]="ERROR: Not checked interface.";
@@ -319,6 +320,7 @@ while [[ $EXIT_FORM == "0" ]];do
 done;
 
 #*******************Save to files****************#
+#Save interface
 
 #Create config network
 echo "
@@ -345,5 +347,8 @@ echo "$FORM_DNS" > $PATH_DNS_HOST;
 
 #Set hostname
 sudo hostnamectl set-hostname $FORM_HOSTNAME;
+
+#Restart skydns
+sudo systemctl restart skydns;
 
 run_at_exit;
