@@ -244,9 +244,6 @@ while [[ $EXIT_FORM == "0" ]];do
       DIALOG_RETURN_VALUE=$?
       exec 3>&-
 
-      if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE == 255 ]]; then
-        run_at_break;
-      fi;
   else
       exec 3>&1
       # Store data to $DIALOG_STRING variable
@@ -264,9 +261,10 @@ while [[ $EXIT_FORM == "0" ]];do
       DIALOG_RETURN_VALUE=$?
       exec 3>&-
 
-      if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE == 255 ]]; then
-        run_at_break;
-      fi;
+  fi;
+
+  if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE == 255 ]]; then
+    run_at_break;
   fi;
 
   # exist "_" in form?
@@ -281,14 +279,18 @@ while [[ $EXIT_FORM == "0" ]];do
   OIFS=$IFS
   IFS='_'
   DIALOG_STRING=($DIALOG_STRING)
-  FORM_IP=${DIALOG_STRING[0]};
-  FORM_MASK=${DIALOG_STRING[1]};
-  FORM_GATEWAY=${DIALOG_STRING[2]};
-  FORM_DNS=${DIALOG_STRING[3]};
-
-
-
-  FORM_HOSTNAME=${DIALOG_STRING[4]};
+  if [ -f $PATH_DNS_HOST ];then
+      FORM_IP=${DIALOG_STRING[0]};
+      FORM_MASK=${DIALOG_STRING[1]};
+      FORM_GATEWAY=${DIALOG_STRING[2]};
+      FORM_DNS=${DIALOG_STRING[3]};
+  else
+      FORM_HOSTNAME=${DIALOG_STRING[0]};
+      FORM_IP=${DIALOG_STRING[1]};
+      FORM_MASK=${DIALOG_STRING[2]};
+      FORM_GATEWAY=${DIALOG_STRING[3]};
+      FORM_DNS=${DIALOG_STRING[4]};
+  fi;
   IFS=$OIFS
 
   #*********Correct ip*********#
