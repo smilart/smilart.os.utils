@@ -97,7 +97,7 @@ fi;
 #translate netmask to cidr
 # mask2cidr_func <mask>
 # mask2cidr_func 255.255.254.0
-fnction mask2cidr_func() {
+function mask2cidr_func() {
   local nbits=0;
   local IFS=.;
   local dec='';
