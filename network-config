@@ -14,12 +14,14 @@ PATH_SYSTEM_NETWORK="/etc/systemd/network";
 PATH_DNS_HOST="/etc/smilart/dns-host";
 NETWORK_INSTALLED="/etc/smilart/network_installed";
 
-#**************log ERROR****************#
+#**************log ERROR************************#
 LOG_ERROR[1]="ERROR: Not checked interface.";
 LOG_ERROR[2]="ERROR: Found symbol '_' in fields.";
 LOG_ERROR[3]="ERROR: Field 'Mask' is incorrect.";
 LOG_ERROR[4]="ERROR: Incorrect hostname.";
 LOG_ERROR[5]="ERROR: Cannot change hostname.";
+LOG_ERROR[6]="ERROR: Not connect to local etcd.";
+LOG_ERROR[7]="ERROR: This machine is a cluster.";
 #********Genetate tempfiles from dialog*********#
 tempfile() {
     tempprefix=$(basename "$0");
@@ -95,7 +97,7 @@ fi;
 #translate netmask to cidr
 # mask2cidr_func <mask>
 # mask2cidr_func 255.255.254.0
-function mask2cidr_func() {
+fnction mask2cidr_func() {
   local nbits=0;
   local IFS=.;
   local dec='';
@@ -123,6 +125,34 @@ if ! [[ "$1" =~ ^[a-z][a-z0-9-]{0,}$ ]];then
   continue
 fi
 }
+
+#***************Role to cluster******************#
+
+#While. Reconnect to local etcd 
+i=0;
+while [ $i -lt 3 ]; do
+    i=$[$i+1];
+    etcdctl member list >/dev/null 2>&1;
+    if [ $? -ne 0 ];then
+        echo -e "\E[33mWARN: Local etcd service is available. Reconnect after 3 seconds..";tput sgr0;
+        sleep 3;
+        continue;
+    else
+        break
+    fi;
+done
+if [ $i -eq 4 ];then
+    error_func "${LOG_ERROR[6]}";
+    exit 1;
+fi;
+unset i;
+
+if [[ `etcdctl member list | wc -l` != '1' ]];then
+    error_func "${LOG_ERROR[7]}";
+    exit 1;
+fi;
+
+
 
 #****************CONFIGURE INTERFACE**************#
 EXIT_FORM="0";
