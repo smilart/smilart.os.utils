@@ -372,11 +372,13 @@ done;
 # Restart interface
 sudo systemctl restart systemd-networkd;
 
-#Save dns in temporary file to configure dns server
-echo "$FORM_DNS" > $PATH_DNS_HOST;
-
 #Set hostname
 sudo hostnamectl set-hostname $FORM_HOSTNAME;
+
+#Save dns in temporary file to configure dns server
+mkdir -p /etc/smilart > /dev/null 2>&1;
+echo "$FORM_DNS" > $PATH_DNS_HOST;
+echo "$FORM_INTERFACE" > $NETWORK_INSTALLED;
 
 #Restart skydns
 clear;
