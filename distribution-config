@@ -1,0 +1,57 @@
+#!/bin/bash
+
+PATH_CONFIGURE_DIR="/etc/smilart";
+
+sudo mkdir -p $PATH_CONFIGURE_DIR;
+touch $PATH_CONFIGURE_DIR/first_boot;
+
+#Configuring network
+if [ ! -e $PATH_CONFIGURE_DIR/network_installed ]; then
+    network-config;
+else
+    echo -e "\E[32mThe network is already configured.\n";tput sgr0
+fi;
+
+#Configuring time
+if [ ! -e $PATH_CONFIGURE_DIR/datetime_installed ]; then
+    datetime-config;
+    if [[ $? == 0 ]];then
+        touch $PATH_CONFIGURE_DIR/datetime_installed;
+    fi;
+else 
+    echo -e "\E[32mThe data is already configured.\n";tput sgr0 
+fi;
+
+#Installing containers
+if [ ! -e $PATH_CONFIGURE_DIR/containers_installed ]; then
+    #Loading containers
+    PATH_CONTAINERS="/var/lib/smilart_srv/repos/*";
+    for LIST_CONTAINERS in $PATH_CONTAINERS; do
+        echo;
+        echo "Processing $LIST_CONTAINERS file...";
+        sudo /usr/sbin/sam installfile $LIST_CONTAINERS;
+    done;
+    touch $PATH_CONFIGURE_DIR/containers_installed;
+else
+    echo -e "\E[32mContainers is already loaded.\n";tput sgr0
+fi;
+
+#Installing product
+if [ ! -e $PATH_CONFIGURE_DIR/product_installed ]; then
+    # Installing product
+    sudo /opt/bin/installproduct;
+
+    # Rebooting system
+    echo -e "\E[33mSystem will reboot after 15 seconds.";tput sgr0;
+    TIMEOUT=15;
+    echo -n "Wait -- ";
+    while [ $TIMEOUT -gt 0 ]; do
+        echo -n "$TIMEOUT ";
+        TIMEOUT=$(($TIMEOUT-1));
+        sleep 1;
+    done;
+    echo "OK";
+    sudo /sbin/reboot;
+else
+    echo -e "\E[32mTheProduct is already installed.\n";tput sgr0
+fi;
