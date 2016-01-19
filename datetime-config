@@ -13,14 +13,21 @@ if [[ $? != 0 ]];then
 fi;
 
 set_timezone_func(){
-  sudo /usr/bin/timedatectl set-timezone "$1";
-  sudo rm -r -f /etc/timezone > /dev/null 2>&1;
-  sudo echo "$1" > /etc/timezone;
+    if [ -d /etc/timezone ];then
+       error_func "${LOG_ERROR[1]}";
+       run_at_break;
+    else
+      sudo /usr/bin/timedatectl set-timezone "$1";
+      sudo rm -r -f /etc/timezone > /dev/null 2>&1;
+      sudo echo "$1" > /etc/timezone;
+    fi;
 }
 
 set_date_func(){
   sudo /usr/bin/timedatectl set-time "$1 $2";
 }
+#**************log ERROR************************#
+LOG_ERROR[1]="ERROR: /etc/timezone is directory.";
 
 #********Genetate tempfiles from dialog*********#
 tempfile() {
@@ -29,11 +36,17 @@ tempfile() {
 }
 
 TMP_DIALOG_WARN=$(tempfile)
+TMP_DIALOG_ERROR=$(tempfile)
 
 echo "
 dialog_color = (YELLOW,WHITE,ON)
 title_color = (RED,WHITE,ON)
 " > $TMP_DIALOG_WARN
+
+echo "
+dialog_color = (RED,WHITE,OFF)
+title_color = (RED,WHITE,ON)
+" > $TMP_DIALOG_ERROR
 
 # Function at break script
 run_at_break(){
@@ -51,6 +64,15 @@ run_at_exit(){
 }
 
 trap 'run_at_break' SIGHUP SIGINT SIGTERM
+
+# Error function
+
+# echo ERROR to dialog
+# error_func <text>
+error_func() {
+  DIALOGRC="$TMP_DIALOG_ERROR" \
+    dialog --msgbox "\n$1" 10 50
+}
 
 #****************CONFIGURE DATA INTERFACE**************#
 EXIT_FORM="0";
@@ -205,7 +227,7 @@ done;
 
 # Set default timezone
 if [[ -z $CHTZ_TIMEZONE_RESULT ]];then
-     set_timezone_func $MENU_TIMEZONE; 
+     set_timezone_func $MENU_TIMEZONE;
 fi;
 
 run_at_exit;
