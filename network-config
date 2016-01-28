@@ -24,6 +24,7 @@ LOG_ERROR[6]="ERROR: Cannot connect to local etcd.";
 LOG_ERROR[7]="ERROR: This machine is a cluster.";
 LOG_ERROR[8]="ERROR: Not started skydns service. See 'journalctl -u skydns' for details.";
 LOG_ERROR[9]="ERROR: Hostname to server not changed.";
+LOG_ERROR[10]="ERROR: Hostname can not be 'localhost'.";
 #********Genetate tempfiles from dialog*********#
 tempfile() {
     tempprefix=$(basename "$0");
@@ -124,6 +125,10 @@ function mask2cidr_func() {
 function test_hostname_func() {
 if ! [[ "$1" =~ ^[a-z][a-z0-9-]{0,}$ ]];then
   error_func "${LOG_ERROR[4]}";
+  continue
+fi
+if [[ "$1" == "localhost" ]];then
+  error_func "${LOG_ERROR[10]}";
   continue
 fi
 }
