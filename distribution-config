@@ -44,11 +44,17 @@ if [ ! -e $PATH_CONFIGURE_DIR/product_installed ]; then
     # Rebooting system
     echo -e "\E[33mSystem will reboot after 15 seconds.";tput sgr0;
     TIMEOUT=15;
+    KEY="true";
     echo -n "Wait -- ";
     while [ $TIMEOUT -gt 0 ]; do
         echo -n "$TIMEOUT ";
         TIMEOUT=$(($TIMEOUT-1));
-        sleep 1;
+        /bin/bash -c "read -t1 -s -n1 KEY"
+        if [[ `` == "" && "$?" == "0" ]];then
+            break;
+        else
+            continue;
+        fi;
     done;
     echo "OK";
     sudo /sbin/reboot;
