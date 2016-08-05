@@ -38,12 +38,12 @@ TMP_DIALOG_WARN=$(tempfile)
 TMP_DIALOG_ERROR=$(tempfile)
 
 echo "
-dialog_color = (YELLOW,WHITE,ON)
-title_color = (RED,WHITE,ON)
+dialog_color = (BLACK,WHITE,ON)
+title_color = (YELLOW,WHITE,ON)
 " > $TMP_DIALOG_WARN
 
 echo "
-dialog_color = (RED,WHITE,OFF)
+dialog_color = (BLACK,WHITE,OFF)
 title_color = (RED,WHITE,ON)
 " > $TMP_DIALOG_ERROR
 
