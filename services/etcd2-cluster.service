@@ -1,6 +1,0 @@
-[Unit]
-Description=etcd2
-
-[Service]
-EnvironmentFile=/etc/smilart/etcd2-cluster.service.env
-ExecStart=/usr/bin/etcd2
