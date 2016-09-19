@@ -396,8 +396,8 @@ echo "
 # 
 ${FORM_IP}    ${FORM_HOSTNAME}
 ${FORM_IP}    smilartos-update.smilartservices.local
+${FORM_IP}    obr.smilartservices.local
 " >> /etc/hosts;
-echo "" > /etc/hosts;
 
 # Restart interface
 sudo systemctl restart systemd-networkd;
