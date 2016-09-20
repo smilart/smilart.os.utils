@@ -22,6 +22,7 @@ LOG_ERROR[4]="ERROR: Hostname is'nt valid.";
 LOG_ERROR[5]="ERROR: Cannot change hostname.";
 LOG_ERROR[6]="ERROR: Cannot connect to local etcd.";
 LOG_ERROR[7]="ERROR: This machine is a cluster.";
+LOG_ERROR[8]="ERROR: Cannot change /etc/hosts.";
 LOG_ERROR[9]="ERROR: Hostname to server not changed.";
 LOG_ERROR[10]="ERROR: Hostname can not be 'localhost'.";
 #********Genetate tempfiles from dialog*********#
@@ -66,6 +67,33 @@ run_at_break(){
 run_at_exit(){
   rm -f ${TMP_DIALOG_MENU} ${TMP_DIALOG_ERROR} ${TMP_DIALOG_WARN}
   exit 0;
+}
+
+# Function remove old configure in /etc/hosts
+erase_old_hosts(){
+  local line
+  local erase_string_flug=false
+
+  mv /etc/hosts /etc/hosts.old
+  if [ $? -ne 0 ];then
+    error_func "${LOG_ERROR[8]}";
+    exit 1;
+  fi;
+
+  while IFS= read -r line;
+  do
+    if [[ "$line" -eq "#Smilart configure" ]];then
+      erase_string_flug=true
+    fi
+    
+    if [[ ${erase_string_flug} -eq 'false' ]];then
+      echo "$line" >> /etc/hosts
+    fi
+    
+    if [[ "$line" -eq "#End smilart configure" ]];then
+      erase_string_flug=false
+    fi
+  done</etc/hosts.old
 }
 
 trap 'run_at_break' SIGHUP SIGINT SIGTERM
@@ -391,13 +419,16 @@ sleep 0.1;
 done;
 
 # Add ip of hostname to /etc/hosts
-echo "
-# Smilart configure.
+
+erase_old_hosts
+echo "#Smilart configure
 # 
 ${FORM_IP}    ${FORM_HOSTNAME}
 ${FORM_IP}    smilartos-update.smilartservices.local
 ${FORM_IP}    obr.smilartservices.local
-" >> /etc/hosts;
+#
+#End smilart configure" >> /etc/hosts;
+
 
 # Restart interface
 sudo systemctl restart systemd-networkd;
