@@ -43,7 +43,7 @@ if [ ! -e $PATH_CONFIGURE_DIR/network_installed ]; then
     rm -f ${TMP_DIALOG_WARN}
     
     if [[ ${EXIT_CODE} == 1 && `hostname` == 'localhost'  ]];then
-      NEW_HOSTNAME=smilart-`nodeinfo | awk '{print $1}' | grep -Eo '.{6}$'`;
+      NEW_HOSTNAME=smilart-`sudo cat /sys/devices/virtual/dmi/id/product_uuid | grep -Eo '.{6}$'`;
       sudo hostnamectl set-hostname ${NEW_HOSTNAME};
       if [ $? -ne 0 ];then
          echo -e "\E[31mERROR: Cannot change hostname of localhost.">&2;tput sgr0;
