@@ -74,7 +74,9 @@ erase_old_hosts(){
   local line
   local erase_string_flug=false
 
-  mv /etc/hosts /etc/hosts.old
+  cp /etc/hosts /etc/hosts.old
+  echo "" > /etc/hosts
+
   if [ $? -ne 0 ];then
     error_func "${LOG_ERROR[8]}";
     exit 1;
