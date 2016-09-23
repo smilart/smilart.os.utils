@@ -246,7 +246,7 @@ EXIT_FORM="0";
 
 # Writing old configure
 if [[ `hostname` == 'localhost' ]];then
-  FORM_HOSTNAME="";
+  FORM_HOSTNAME='';
 else
   FORM_HOSTNAME="`hostname`";
 fi
@@ -321,17 +321,17 @@ while [[ ${EXIT_FORM} == "0" ]];do
   IFS='_'
   DIALOG_STRING=(${DIALOG_STRING})
   if [ -f ${PATH_DNS_HOST} ];then
-      #FORM_HOSTNAME=${DIALOG_STRING[0]};
-      FORM_IP=${DIALOG_STRING[0]};
-      FORM_MASK=${DIALOG_STRING[1]};
-      FORM_GATEWAY=${DIALOG_STRING[2]};
-      FORM_DNS=${DIALOG_STRING[3]};
+      #FORM_HOSTNAME='';
+      FORM_IP="${DIALOG_STRING[0]}";
+      FORM_MASK="${DIALOG_STRING[1]}";
+      FORM_GATEWAY="${DIALOG_STRING[2]}";
+      FORM_DNS="${DIALOG_STRING[3]}";
   else
-      FORM_HOSTNAME=${DIALOG_STRING[0]};
-      FORM_IP=${DIALOG_STRING[1]};
-      FORM_MASK=${DIALOG_STRING[2]};
-      FORM_GATEWAY=${DIALOG_STRING[3]};
-      FORM_DNS=${DIALOG_STRING[4]};
+      FORM_HOSTNAME="${DIALOG_STRING[0]}";
+      FORM_IP="${DIALOG_STRING[1]}";
+      FORM_MASK="${DIALOG_STRING[2]}";
+      FORM_GATEWAY="${DIALOG_STRING[3]}";
+      FORM_DNS="${DIALOG_STRING[4]}";
   fi;
   IFS=$OIFS
 
@@ -393,7 +393,7 @@ while [[ ${EXIT_FORM} == "0" ]];do
   field_not_empty_func "${FORM_HOSTNAME}" Hostname;
 
   #valid hostname?
-  test_hostname_func ${FORM_HOSTNAME};
+  test_hostname_func "${FORM_HOSTNAME}";
 
   EXIT_FORM="1";
 done;
@@ -422,10 +422,8 @@ done;
 
 erase_old_hosts
 echo "#Smilart configure
-# 
+# WARNING!!! This text blok only changes automatically.
 ${FORM_IP}    ${FORM_HOSTNAME}
-${FORM_IP}    smilartos-update.smilartservices.local
-${FORM_IP}    obr.smilartservices.local
 #
 #End smilart configure" >> /etc/hosts;
 
@@ -434,7 +432,7 @@ ${FORM_IP}    obr.smilartservices.local
 sudo systemctl restart systemd-networkd;
 
 #Set hostname
-sudo hostnamectl set-hostname ${FORM_HOSTNAME};
+sudo hostnamectl set-hostname "${FORM_HOSTNAME}";
 if [[ $? != 0 ]];then
     error_func "${LOG_ERROR[9]}";
     exit 1;

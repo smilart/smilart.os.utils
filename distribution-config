@@ -2,12 +2,57 @@
 
 PATH_CONFIGURE_DIR="/etc/smilart";
 
+#Dialog color sheme
+tempfile() {
+    tempprefix=$(basename "$0");
+    mktemp /tmp/${tempprefix}.XXXXXX;
+}
+TMP_DIALOG_WARN=$(tempfile)
+echo "
+dialog_color = (BLACK,WHITE,ON)
+title_color = (YELLOW,WHITE,ON)
+" > ${TMP_DIALOG_WARN}
+
 sudo mkdir -p $PATH_CONFIGURE_DIR;
 touch $PATH_CONFIGURE_DIR/first_boot;
 
 #Configuring network
 if [ ! -e $PATH_CONFIGURE_DIR/network_installed ]; then
-    network-config;
+    #EXIT_CODE 
+    # 0 - OK
+    # 1 - change hostname
+    # 2 - restart network-config 
+    EXIT_CODE=2;
+    while [[ ${EXIT_CODE} == 2 ]];
+    do
+      network-config;
+      if [[ $? == 1 ]];then
+        DIALOGRC="${TMP_DIALOG_WARN}" \
+        dialog --ok-label "OK" \
+               --yesno "\nWARNING! if you cancel the wizard, network settings will not be configured and the hostname will be generated automaticaly. You cannot change the hostname later. So it is strongly recommended to set hostname now.\n  Are you sure you want to exit?\n" 12 60
+      case $? in 
+               0) EXIT_CODE=1;
+                  clear;;
+               1) EXIT_CODE=2;
+                  clear;;
+             255) EXIT_CODE=1;
+                  clear;;
+      esac
+      fi
+    done
+    rm -f ${TMP_DIALOG_WARN}
+    
+    if [[ ${EXIT_CODE} == 1 && `hostname` == 'localhost'  ]];then
+      NEW_HOSTNAME=smilart-`nodeinfo | awk '{print $1}' | grep -Eo '.{6}$'`;
+      sudo hostnamectl set-hostname ${NEW_HOSTNAME};
+      if [ $? -ne 0 ];then
+         echo -e "\E[31mERROR: Cannot change hostname of localhost.">&2;tput sgr0;
+         echo "System setup is interrupted.";
+         exit 1;
+      else
+         echo -e "\E[33mWARN: Hostname system changed to `hostname`.";tput sgr0;
+      fi
+    fi
 else
     echo -e "\E[32mThe network is already configured.\n";tput sgr0
 fi;
