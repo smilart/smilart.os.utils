@@ -25,6 +25,7 @@ LOG_ERROR[7]="ERROR: This machine is a cluster.";
 LOG_ERROR[8]="ERROR: Cannot change /etc/hosts.";
 LOG_ERROR[9]="ERROR: Hostname to server not changed.";
 LOG_ERROR[10]="ERROR: Hostname can not be 'localhost'.";
+LOG_ERROR[11]="ERROR: Cannot erase /etc/hosts.";
 #********Genetate tempfiles from dialog*********#
 tempfile() {
     tempprefix=$(basename "$0");
@@ -71,31 +72,16 @@ run_at_exit(){
 
 # Function remove old configure in /etc/hosts
 erase_old_hosts(){
-  local line
-  local erase_string_flug=false
-
-  cp /etc/hosts /etc/hosts.old
-  echo "" > /etc/hosts
-
+  cp /etc/hosts /etc/hosts.old > /dev/null 2>&1;
   if [ $? -ne 0 ];then
     error_func "${LOG_ERROR[8]}";
     exit 1;
   fi;
-
-  while IFS= read -r line;
-  do
-    if [[ "$line" -eq "#Smilart configure" ]];then
-      erase_string_flug=true
-    fi
-    
-    if [[ ${erase_string_flug} -eq 'false' ]];then
-      echo "$line" >> /etc/hosts
-    fi
-    
-    if [[ "$line" -eq "#End smilart configure" ]];then
-      erase_string_flug=false
-    fi
-  done</etc/hosts.old
+  sed '/\#Smilart\ configure/,/\#End\ smilart\ configure/d' /etc/hosts.old > /etc/hosts;
+  if [ $? -ne 0 ];then
+    error_func "${LOG_ERROR[11]}";
+    exit 1;
+  fi;
 }
 
 trap 'run_at_break' SIGHUP SIGINT SIGTERM

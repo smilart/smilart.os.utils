@@ -18,31 +18,31 @@ touch $PATH_CONFIGURE_DIR/first_boot;
 
 #Configuring network
 if [ ! -e $PATH_CONFIGURE_DIR/network_installed ]; then
-    #EXIT_CODE 
-    # 0 - OK
-    # 1 - change hostname
-    # 2 - restart network-config 
-    EXIT_CODE=2;
-    while [[ ${EXIT_CODE} == 2 ]];
+    while true;
     do
-      network-config;
+      ./network-config;
       if [[ $? == 1 ]];then
         DIALOGRC="${TMP_DIALOG_WARN}" \
         dialog --ok-label "OK" \
                --yesno "\nWARNING! if you cancel the wizard, network settings will not be configured and the hostname will be generated automaticaly. You cannot change the hostname later. So it is strongly recommended to set hostname now.\n  Are you sure you want to exit?\n" 12 60
-      case $? in 
-               0) EXIT_CODE=1;
-                  clear;;
-               1) EXIT_CODE=2;
-                  clear;;
-             255) EXIT_CODE=1;
-                  clear;;
-      esac
+        case $? in 
+               0) clear;
+                  break;;
+
+               1) clear;
+                  continue;;
+
+             255) clear;
+                  break;;
+        esac
+      else
+        break;
       fi
+      
     done
     rm -f ${TMP_DIALOG_WARN}
     
-    if [[ ${EXIT_CODE} == 1 && `hostname` == 'localhost'  ]];then
+    if [[ `hostname` == 'localhost'  ]];then
       NEW_HOSTNAME=smilart-`sudo cat /sys/devices/virtual/dmi/id/product_uuid | grep -Eo '.{6}$'`;
       sudo hostnamectl set-hostname ${NEW_HOSTNAME};
       if [ $? -ne 0 ];then
