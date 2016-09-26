@@ -20,7 +20,7 @@ touch $PATH_CONFIGURE_DIR/first_boot;
 if [ ! -e $PATH_CONFIGURE_DIR/network_installed ]; then
     while true;
     do
-      ./network-config;
+      network-config;
       if [[ $? == 1 ]];then
         DIALOGRC="${TMP_DIALOG_WARN}" \
         dialog --ok-label "OK" \
