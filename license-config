@@ -1,0 +1,265 @@
+#!/bin/bash
+
+#Debug mode
+#set -vx;
+
+LICENSE_INSTALLED_PATH=/var/lib/smilart_srv/license;
+
+#exist dialog?
+dialog --clear;
+if [[ $? != 0 ]];then
+  echo -e "\E[31mERROR: Cannot run 'dialog'.">&2;tput sgr0;
+  exit 1;
+fi;
+
+#********Genetate tempfiles from dialog*********#
+tempfile() {
+    tempprefix=$(basename "$0");
+    mktemp /tmp/${tempprefix}.XXXXXX;
+}
+
+tempdir() {
+    mktemp -d /tmp/smilart-mount.XXXXXX;
+}
+
+TMP_DIALOG_WARN=$(tempfile)
+TMP_DIALOG_INFO=$(tempfile)
+TMP_DIALOG_MENU=$(tempfile)
+TMP_DIALOG_ERROR=$(tempfile)
+MOUNT_DIR=$(tempdir)
+
+echo "
+dialog_color = (BLACK,WHITE,ON)
+title_color = (YELLOW,WHITE,ON)
+" > $TMP_DIALOG_WARN;
+
+echo "
+dialog_color = (BLACK,WHITE,ON)
+title_color = (GREEN,WHITE,ON)
+" > $TMP_DIALOG_INFO;
+
+echo "
+bindkey formbox   TAB  form_next
+bindkey formfield TAB  form_next
+bindkey formfield BTAB form_prev
+bindkey formbox   BTAB form_prev
+" > $TMP_DIALOG_MENU;
+
+echo "
+dialog_color = (BLACK,WHITE,ON)
+title_color = (RED,WHITE,ON)
+" > $TMP_DIALOG_ERROR;
+
+# echo ERROR to dialog
+# error_func <text>
+error_func() {
+  DIALOGRC="$TMP_DIALOG_ERROR" \
+      dialog --title "" --msgbox "\n $1" 10 50
+}
+
+# Function at break script
+run_at_break(){
+  sleep 1;
+  DIALOGRC="$TMP_DIALOG_WARN" \
+    dialog --ok-label "OK" \
+           --title "" \
+           --msgbox "\nWARN: License product is not configured." 10 50;
+  umount $MOUNT_DIR > /dev/null 2>&1;
+  rm -f -r $TMP_DIALOG_MENU $TMP_DIALOG_ERROR $TMP_DIALOG_INFO $TMP_DIALOG_WARN $MOUNT_DIR;
+  exit 1;
+}
+# Function at exit script
+run_at_exit(){
+  umount $MOUNT_DIR > /dev/null 2>&1;
+  rm -f -r $TMP_DIALOG_MENU $TMP_DIALOG_ERROR $TMP_DIALOG_INFO $TMP_DIALOG_WARN $MOUNT_DIR;
+  exit 0;
+}
+
+trap 'run_at_break' SIGHUP SIGINT SIGTERM
+
+#****************MAIN PROGRAMM*****************#
+
+mkdir -p $MOUNT_DIR;
+mkdir -p $LICENSE_INSTALLED_PATH;
+
+# Exist label SMILART_LIC in system?
+
+#While. Remount SMILART_LIC
+echo 'Mounting flash drive to directory /tmp/smilart.'
+
+#Menu
+EXIT_FORM="true";
+while [[ $EXIT_FORM == "true" ]];do
+  # Store data to $cmd variable
+  exec 3>&1
+  FORM_LICENSE=$(DIALOGRC="$TMP_DIALOG_MENU" dialog --clear \
+    --ok-label "Next" \
+    --title "Smilart Operating System" \
+    --radiolist "\nLicense setup:" \
+      11 50 4 \
+      1 "Generate request file" off \
+      2 "Install license" on \
+      2>&1 1>&3)
+  DIALOG_RETURN_VALUE=$?
+  exec 3>&-
+
+  if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE == 255 ]]; then
+    umount $MOUNT_DIR > /dev/null 2>&1;
+    run_at_break;
+  fi;
+
+  #Empty ?
+  if [[ -z "$FORM_LICENSE" ]]; then
+     error_func "ERROR: Not selected operation license.";
+     continue
+  fi;
+
+  #Checked menu
+  if [[ "$FORM_LICENSE" == "1" ]];then
+    PARTITION_LIC=`blkid | grep 'SMILART_LIC' | tail -1 | awk -F ':' '{print $1}'`;
+    mount  $PARTITION_LIC $MOUNT_DIR >/dev/null 2>&1;
+    if [ $? -ne 0 ];then
+      # display values just entered
+      # open fd
+      exec 3>&1
+      # Store data to variable
+      FORM_REQUEST=$(DIALOGRC="$TMP_DIALOG_MENU" dialog --clear \
+          --ok-label "OK" \
+          --title "Smilart Operating System" \
+          --form "\nNot found device whit label SMILART_LIC.\n" \
+         0 0 0 \
+         "Path to request file:              " 1 1 "$FORM_REQUEST"           1 25 30 0 \
+         2>&1 1>&3)
+      DIALOG_RETURN_VALUE=$?
+      exec 3>&-
+
+      #ESC in dialog?
+      if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE == 255 ]]; then
+        sleep 1;
+        continue
+      fi;
+
+      #Empty?
+      if [[ -z "$FORM_REQUEST" ]]; then
+        FORM_REQUEST=$PWD
+      fi;
+
+      #Path is valid?
+      if ! [ -d ${FORM_REQUEST} ];then
+         mkdir -p ${FORM_REQUEST};
+         if [ $? -ne 0 ];then
+           error_func "ERROR: Cannot create directory ${FORM_REQUEST}";
+           continue
+         fi;
+      fi;
+
+      nodeinfo | tr -d '\n' > $FORM_REQUEST/request
+      if [ $? -ne 0 ];then
+        error_func "ERROR: Request not saved to $FORM_REQUEST. Maybe directory is read-only..";
+        continue
+      else
+        DIALOGRC="$TMP_DIALOG_INFO" \
+        dialog --ok-label "OK" \
+           --title "" \
+           --msgbox "\nINFO: Request saved to $FORM_REQUEST/request." 10 50;
+      fi;
+    else
+      nodeinfo | tr -d '\n' > $MOUNT_DIR/request
+      if [ $? -ne 0 ];then
+        error_func "ERROR: Request not saved to device SMILART_LIC. Cannot create file request.";
+      else
+        DIALOGRC="$TMP_DIALOG_INFO" \
+        dialog --ok-label "OK" \
+               --title "" \
+               --msgbox "\nINFO: Request saved to device $PARTITION_LIC." 10 50;
+      fi;
+    fi;
+    run_at_exit;
+  else
+    PARTITION_LIC=`blkid | grep 'SMILART_LIC' | tail -1 | awk -F ':' '{print $1}'`;
+    mount  $PARTITION_LIC $MOUNT_DIR >/dev/null 2>&1;
+    #Exist file license?
+    if ! [ -e $MOUNT_DIR/license ];then
+        # display values just entered
+        # open fd
+        exec 3>&1
+        # Store data to variable
+        FORM_RESPONSE=$(DIALOGRC="$TMP_DIALOG_MENU" dialog --clear \
+            --ok-label "OK" \
+            --title "Smilart Operating System" \
+            --form "\nLicense file not found on device SMILART_LIC.\n Check to lisense file:" \
+           0 0 0 \
+           "License file:              " 1 1 "$FORM_RESPONSE"           1 20 30 0 \
+           2>&1 1>&3)
+        DIALOG_RETURN_VALUE=$?
+        exec 3>&-
+
+        #ESC in dialog?
+        if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE == 255 ]]; then
+          sleep 1;
+          continue
+        fi;
+
+        #Empty?
+        if [[ -z "$FORM_RESPONSE" ]]; then
+          FORM_RESPONSE=$PWD/license;
+        fi;
+
+        #Exist file license?
+        if ! [ -e $FORM_RESPONSE ];then
+          error_func "ERROR: Not found license file from $FORM_RESPONSE.";
+          continue;
+        fi;
+
+        verifylic $FORM_RESPONSE > /dev/null 2>&1;
+        if [ $? -ne 0 ];then
+          error_func "ERROR: Licence signature is not valid.";
+          continue;
+        fi;
+
+        if [[ -z `verifylic $FORM_RESPONSE | grep "$(nodeinfo)"` ]];then
+          error_func "ERROR: License file is correct, but is generated for a different PC.";
+          continue;
+        fi;
+
+        DIALOGRC="$TMP_DIALOG_INFO" \
+         dialog --ok-label "OK" \
+                --title "" \
+                --msgbox "\nINFO: License file saved to $LICENSE_INSTALLED_PATH." 10 50;
+
+        cp $FORM_RESPONSE $LICENSE_INSTALLED_PATH/license > /dev/null 2>&1; 
+        if [ $? -ne 0 ];then
+          error_func "ERROR: Not copying file from $FORM_RESPONSE to $LICENSE_INSTALLED_PATH/license.";
+          continue;
+        fi;
+
+     else
+
+        verifylic $MOUNT_DIR/license > /dev/null 2>&1;
+        if [ $? -ne 0 ];then
+          error_func "ERROR: Digital signature to license from device $PARTITION_LIC not valid.";
+          continue;
+        fi;
+
+        if [[ -z `verifylic $MOUNT_DIR/license | grep "$(nodeinfo)"` ]];then
+          error_func "ERROR: License from device $PARTITION_LIC is correct, but is generated for a different PC.";
+          continue;
+        fi;
+
+        DIALOGRC="$TMP_DIALOG_INFO" \
+         dialog --ok-label "OK" \
+                --title "" \
+                --msgbox "\nINFO: License file saved to $LICENSE_INSTALLED_PATH." 10 50;
+
+        cp $MOUNT_DIR/license $LICENSE_INSTALLED_PATH/license > /dev/null 2>&1;
+        if [ $? -ne 0 ];then
+          error_func "ERROR: Not copying file from $FORM_RESPONSE to $MOUNT_DIR/license.";
+          continue;
+        fi;
+      fi;
+  fi;
+  EXIT_FORM="false";
+done;
+#Umount exist?
+
+run_at_exit;
