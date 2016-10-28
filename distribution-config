@@ -74,7 +74,7 @@ if [ ! -e $PATH_CONFIGURE_DIR/containers_installed ]; then
     for LIST_CONTAINERS in $PATH_CONTAINERS; do
         echo;
         echo "Processing $LIST_CONTAINERS file...";
-        sudo /usr/sbin/sam installfile $LIST_CONTAINERS;
+        sam installfile $LIST_CONTAINERS;
     done;
     touch $PATH_CONFIGURE_DIR/containers_installed;
 else

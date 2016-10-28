@@ -20,7 +20,6 @@ LOG_ERROR[2]="ERROR: Found symbol '_' in fields.";
 LOG_ERROR[3]="ERROR: Field 'Mask' is'nt valid.";
 LOG_ERROR[4]="ERROR: Hostname is'nt valid.";
 LOG_ERROR[5]="ERROR: Cannot change hostname.";
-LOG_ERROR[6]="ERROR: Cannot connect to local etcd.";
 LOG_ERROR[7]="ERROR: This machine is a cluster.";
 LOG_ERROR[8]="ERROR: Cannot change /etc/hosts.";
 LOG_ERROR[9]="ERROR: Hostname to server not changed.";
@@ -148,34 +147,6 @@ if [[ "$1" == "localhost" ]];then
   continue
 fi
 }
-
-#***************Role to cluster******************#
-
-#While. Reconnect to local etcd 
-i=0;
-while [ $i -lt 3 ]; do
-    i=$[$i+1];
-    etcdctl member list >/dev/null 2>&1;
-    if [ $? -ne 0 ];then
-        echo -e "\E[33mWARN: Local etcd service is available. Reconnect after 3 seconds..";tput sgr0;
-        sleep 3;
-        continue;
-    else
-        break
-    fi;
-done
-if [ $i -eq 3 ];then
-    error_func "${LOG_ERROR[6]}";
-    exit 1;
-fi;
-unset i;
-
-if [[ `etcdctl member list | wc -l` != '1' ]];then
-    error_func "${LOG_ERROR[7]}";
-    exit 1;
-fi;
-
-
 
 #****************CONFIGURE INTERFACE**************#
 EXIT_FORM="0";
