@@ -379,7 +379,10 @@ done;
 
 # Add ip of hostname to /etc/hosts
 
-erase_old_hosts
+if [ -а /etc/hosts ];then
+    erase_old_hosts
+fi;
+
 echo "#Smilart configure
 # WARNING!!! This text blok only changes automatically.
 ${FORM_IP}    ${FORM_HOSTNAME}
