@@ -112,6 +112,20 @@ if [[ -z $1 ]];then
 fi;
 }
 
+# field_already_filled <field name>
+# field_not_empty_func DNS
+function field_already_filled() {
+#if exist in all but not exist in this interface  
+if [[ -n `grep -r -E "Gateway=[0-9,.]+$" /etc/systemd/network/ | grep -v "$FORM_INTERFACE.network"` ]];then
+    DIALOGRC="${TMP_DIALOG_WARN}" \
+      dialog --yes-label No \
+             --no-label Yes \
+             --yesno "WARN: $1 was already configured. Do you really want to configure it again?" 10 50
+    return $?
+fi;
+return 333
+}
+
 #translate netmask to cidr
 # mask2cidr_func <mask>
 # mask2cidr_func 255.255.254.0
@@ -215,10 +229,7 @@ if [ -e "${PATH_SYSTEM_NETWORK}/${FORM_INTERFACE}.network" ];then
   FORM_IP=`echo "${CONFIGURE_TO_FILE}" | grep 'Address' | sed s#"Address="##g | awk -F '/' ' {print $1} '`;
   FORM_MASK=/`echo "${CONFIGURE_TO_FILE}" | grep 'Address' | sed s#"Address="##g | awk -F '/' ' {print $2} '`;
   FORM_GATEWAY=`echo "${CONFIGURE_TO_FILE}" | grep 'Gateway' | sed s#"Gateway="##g`;
-  FORM_DNS=`cat "${PATH_DNS_HOST}"`;
-  if [ -z ${FORM_DNS} ];then
-      FORM_DNS='8.8.8.8';
-  fi;
+  FORM_DNS=`echo "${CONFIGURE_TO_FILE}" | grep 'DNS' | sed s#"DNS="##g`;
 else
   FORM_IP='';
   FORM_MASK='';
@@ -330,14 +341,18 @@ while [[ ${EXIT_FORM} == "0" ]];do
   if [[ -n "$FORM_GATEWAY" ]]; then
     # It is ip format?
     valid_ip_func "${FORM_GATEWAY}" Gateway;
+    # Gateway is already configured?
+    field_already_filled Gateway;
+    case $? in
+      0|255) FORM_GATEWAY='';
+             continue;;
+    esac
   fi;
-  
-  
 
   #*********Valid dns*********#
   # empty field?
-  field_not_empty_func "${FORM_DNS}" DNS;
-    
+  #field_not_empty_func "${FORM_DNS}" DNS;
+
   if [[ -n "${FORM_DNS}" ]]; then
     # It is ip format?
     valid_ip_func "${FORM_DNS}" DNS;
@@ -367,7 +382,7 @@ Name=${FORM_INTERFACE}
 
 [Network]
 Address=${FORM_IP}${FORM_MASK}
-`if [[ -n ${FORM_GATEWAY} ]];then echo "Gateway=${FORM_GATEWAY}"; fi`
+Gateway=${FORM_GATEWAY}
 DNS=${FORM_DNS}
 Domains=smilart.local
 " > ${PATH_SYSTEM_NETWORK}/${FORM_INTERFACE}.network;
