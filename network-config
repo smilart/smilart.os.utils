@@ -17,8 +17,8 @@ NETWORK_INSTALLED="/etc/smilart/network_installed";
 #**************log ERROR************************#
 LOG_ERROR[1]="ERROR: Not checked interface.";
 LOG_ERROR[2]="ERROR: Found symbol '_' in fields.";
-LOG_ERROR[3]="ERROR: Field 'Mask' is'nt valid.";
-LOG_ERROR[4]="ERROR: Hostname is'nt valid.";
+LOG_ERROR[3]="ERROR: Field 'Mask' isn't valid.";
+LOG_ERROR[4]="ERROR: Hostname isn't valid.";
 LOG_ERROR[5]="ERROR: Cannot change hostname.";
 LOG_ERROR[7]="ERROR: This machine is a cluster.";
 LOG_ERROR[8]="ERROR: Cannot change /etc/hosts.";
@@ -98,7 +98,7 @@ error_func() {
 # valid_ip_func 192.168.1.1 Ip
 function valid_ip_func() {
   if ! [[ $1 =~ ^(25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[0-9]{2}|[0-9])(\.(25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[0-9]{2}|[0-9])){3}$ ]]; then
-    error_func "ERROR: Field '$2' is'nt valid.";
+    error_func "ERROR: Field '$2' isn't valid.";
     continue
   fi;
 }
