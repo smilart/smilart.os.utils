@@ -401,6 +401,7 @@ fi;
 echo "#Smilart configure
 # WARNING!!! This text blok only changes automatically.
 ${FORM_IP}    ${FORM_HOSTNAME}
+127.0.0.1 localhost
 #
 #End smilart configure" >> /etc/hosts;
 
