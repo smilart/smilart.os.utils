@@ -112,11 +112,12 @@ if [[ -z $1 ]];then
 fi;
 }
 
+
 # field_already_filled <field name>
 # field_not_empty_func DNS
 function field_already_filled() {
 #if exist in all but not exist in this interface  
-if [[ -n `grep -r -E "Gateway=[0-9,.]+$" /etc/systemd/network/ | grep -v "$FORM_INTERFACE.network"` ]];then
+if [[ -n `grep -r -E "$1=[0-9,.]+$" /etc/systemd/network/ | grep -v "$FORM_INTERFACE.network"` ]];then
     DIALOGRC="${TMP_DIALOG_WARN}" \
       dialog --yes-label No \
              --no-label Yes \
@@ -347,6 +348,9 @@ while [[ ${EXIT_FORM} == "0" ]];do
       0|255) FORM_GATEWAY='';
              continue;;
     esac
+    for FILE in `ls -1 ${PATH_SYSTEM_NETWORK}`; do
+        sed '/Gateway\=/d' -i ${PATH_SYSTEM_NETWORK}/$FILE
+    done 
   fi;
 
   #*********Valid dns*********#
@@ -394,7 +398,7 @@ done;
 
 # Add ip of hostname to /etc/hosts
 
-if [ -а /etc/hosts ];then
+if [ -e /etc/hosts ];then
     erase_old_hosts
 fi;
 
