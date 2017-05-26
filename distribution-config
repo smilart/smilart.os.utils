@@ -84,7 +84,9 @@ fi;
 #Installing product
 if [ ! -e $PATH_CONFIGURE_DIR/product_installed ]; then
     # Installing product
-    sudo /opt/bin/installproduct;
+    if [[ -f /opt/bin/installproduct ]];then
+        sudo /opt/bin/installproduct;
+    fi;
 
     # Rebooting system
     echo -e "\E[33mSystem will reboot after 15 seconds.";tput sgr0;
