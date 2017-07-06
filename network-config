@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Set debug mode:
-#set -vx
+set -vx
 
 #exist dialog?
 dialog --clear;
@@ -397,7 +397,6 @@ sleep 0.1;
 done;
 
 # Add ip of hostname to /etc/hosts
-
 if [ -e /etc/hosts ];then
     erase_old_hosts
 fi;
@@ -422,9 +421,7 @@ fi;
 
 #Save dns in temporary file to configure dns server
 mkdir -p /etc/smilart > /dev/null 2>&1;
-if [[ -n ${FORM_DNS} ]];then
-  echo "${FORM_DNS}" > ${PATH_DNS_HOST};
-fi;
+echo "${FORM_DNS}" > ${PATH_DNS_HOST};
 
 echo "${FORM_INTERFACE}" > ${NETWORK_INSTALLED};
 clear;
