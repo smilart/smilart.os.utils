@@ -69,6 +69,13 @@ run_at_exit(){
   exit 0;
 }
 
+erase_old_interface(){
+# Delete old config interface
+while ip -f inet addr del dev ${FORM_INTERFACE} >/dev/null 2>&1;do
+sleep 0.1;
+done;
+}
+
 # Function remove old configure in /etc/hosts
 erase_old_hosts(){
   cp /etc/hosts /etc/hosts.old > /dev/null 2>&1;
@@ -213,6 +220,70 @@ while [[ ${EXIT_FORM} == "0" ]];do
      EXIT_FORM="1";
   fi
 
+done;
+
+#***********CONFIGURE TYPE INTERFACES*********#
+EXIT_FORM="0";
+
+while [[ ${EXIT_FORM} == "0" ]];do
+# Store data to $cmd variable
+  exec 3>&1
+  DIALOG_STRING=$(DIALOGRC="$TMP_DIALOG_MENU" dialog --clear \
+    --ok-label "Next" \
+    --title "Smilart Operating System" \
+    --radiolist "\nInterface type:" \
+      11 50 4 \
+      1 "Static IP" on \
+      2 "DHCP" off \
+      3 "LLA" off \
+      2>&1 1>&3)
+  DIALOG_RETURN_VALUE=$?
+  exec 3>&-
+
+  if [[ $DIALOG_RETURN_VALUE == 1 || $DIALOG_RETURN_VALUE == 255 ]]; then
+    run_at_break;
+  fi;
+
+  #Checked menu
+  if [[ "$DIALOG_STRING" == "1" ]];then
+	EXIT_FORM="1"
+  fi;
+  
+  if [[ "$DIALOG_STRING" == "2" ]];then
+	# Delete old config interface
+	erase_old_interface;
+
+  	#Create config network
+echo "
+[Match]
+Name=${FORM_INTERFACE}
+
+[Network]
+DHCP=yes
+" > ${PATH_SYSTEM_NETWORK}/${FORM_INTERFACE}.network;
+	# Restart interface
+	sudo systemctl restart systemd-networkd;      
+	exit 0;
+  fi;
+
+  if [[ "$DIALOG_STRING" == "3" ]];then
+	# Delete old config interface
+	erase_old_interface;
+
+        #Create config network
+echo "
+[Match]
+Name=${FORM_INTERFACE}
+
+[Network]
+IPv4LLRoute=true
+" > ${PATH_SYSTEM_NETWORK}/${FORM_INTERFACE}.network;
+        # Restart interface
+        sudo systemctl restart systemd-networkd;
+        exit 0;
+  fi;
+
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!
 done;
 
 #**************CONFIGURE NETWORK**************#
@@ -392,9 +463,7 @@ Domains=smilart.local
 " > ${PATH_SYSTEM_NETWORK}/${FORM_INTERFACE}.network;
 
 # Delete old config interface
-while ip -f inet addr del dev ${FORM_INTERFACE} >/dev/null 2>&1;do 
-sleep 0.1;
-done;
+erase_old_interface;
 
 # Add ip of hostname to /etc/hosts
 if [ -e /etc/hosts ];then
