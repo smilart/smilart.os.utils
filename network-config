@@ -283,7 +283,6 @@ IPv4LLRoute=true
         exit 0;
   fi;
 
-echo !!!!!!!!!!!!!!!!!!!!!!!!!!
 done;
 
 #**************CONFIGURE NETWORK**************#
