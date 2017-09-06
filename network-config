@@ -276,7 +276,7 @@ echo "
 Name=${FORM_INTERFACE}
 
 [Network]
-IPv4LLRoute=true
+IPv4LL=true
 " > ${PATH_SYSTEM_NETWORK}/${FORM_INTERFACE}.network;
         # Restart interface
         sudo systemctl restart systemd-networkd;
